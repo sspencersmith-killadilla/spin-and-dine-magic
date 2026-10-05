@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Pre-bundle these so Vite doesn't re-optimize mid-session (which loads two React copies).
+    optimizeDeps: {
+      include: ["@radix-ui/react-slider", "@radix-ui/react-switch", "lucide-react"],
+    },
+  },
 });

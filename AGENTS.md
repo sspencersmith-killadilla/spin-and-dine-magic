@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture rules
+- All Google Places calls go through server functions in src/lib/places.functions.ts via the connector gateway; the browser never calls Places directly (managed browser key lacks Places access).
