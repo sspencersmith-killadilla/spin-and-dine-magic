@@ -41,5 +41,5 @@ export function milesBetween(a: { lat: number; lng: number }, b: { lat: number; 
 export function randomIndex(n: number) {
   const a = new Uint32Array(1);
   crypto.getRandomValues(a);
-  return a[0] % n;
+  return (a[0] ?? 0) % n;
 }

@@ -177,7 +177,7 @@ function Index() {
   const onDone = async () => {
     setSpinning(false);
     if (winnerIdx === null) return;
-    const w = pool[winnerIdx];
+    const w = pool[winnerIdx] ?? null;
     setWinner(w);
     if (w?.photo) setWinnerPhoto(await photoFn({ data: { name: w.photo } }));
   };
@@ -270,10 +270,10 @@ function Index() {
             </div>
           </FilterGroup>
           <FilterGroup title={`Minimum rating: ${minRating === 0 ? "Any" : `${minRating}+ stars`}`}>
-            <Slider min={0} max={4.5} step={0.5} value={[minRating]} onValueChange={(v) => setMinRating(v[0])} />
+            <Slider min={0} max={4.5} step={0.5} value={[minRating]} onValueChange={(v) => setMinRating(v[0] ?? 0)} />
           </FilterGroup>
           <FilterGroup title={`Distance: ${radius} mile${radius === 1 ? "" : "s"}`}>
-            <Slider min={1} max={10} step={1} value={[radius]} onValueChange={(v) => setRadius(v[0])} />
+            <Slider min={1} max={10} step={1} value={[radius]} onValueChange={(v) => setRadius(v[0] ?? 5)} />
           </FilterGroup>
           <label className="flex items-center justify-between">
             <span className="font-display text-lg">Open now</span>
