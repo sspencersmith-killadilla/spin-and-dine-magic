@@ -55,7 +55,7 @@ export function SlotMachine({
               className="flex items-center justify-center px-4 text-center font-display text-2xl text-card-foreground"
               style={{ height: ITEM_H }}
             >
-              <span className="truncate">{n}</span>
+              <span className="w-full truncate">{n}</span>
             </div>
           ))}
         </div>

@@ -282,7 +282,7 @@ function Index() {
         </aside>
 
         {/* Picker + results */}
-        <section className="space-y-8">
+        <section className="min-w-0 space-y-8">
           <div className="rounded-3xl border-2 border-foreground bg-secondary p-5 sm:p-8">
             <div className="mb-6 flex justify-center">
               <div className="inline-flex rounded-full border-2 border-foreground bg-card p-1">
@@ -406,7 +406,7 @@ function Index() {
                           {out ? <X className="h-4 w-4 shrink-0" /> : null}
                         </div>
                         <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                          <span>{p.distance.toFixed(1)} mi</span>
+                          <span>{p.distance < 0.1 ? "<0.1" : p.distance.toFixed(1)} mi</span>
                           {p.rating && (
                             <span className="flex items-center gap-0.5">
                               <Star className="h-3 w-3 fill-gold text-gold" /> {p.rating} ({p.ratingCount})
