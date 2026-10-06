@@ -197,7 +197,11 @@ export const searchRestaurants = createServerFn({ method: "POST" })
     const excludedTypes = data.fastFood === "exclude" ? ["fast_food_restaurant"] : undefined;
     const mealWord = data.meal === "any" ? "" : `${data.meal} `;
 
-    const calls: Promise<{ places?: RawPlace[] }>[] = (["POPULARITY", "DISTANCE"] as const).map(
+    // Keyword-only choices (e.g. Halal) should narrow results, so skip the generic nearby search.
+    const keywordOnly = data.keywords.length > 0 && data.types.length === 0 && data.fastFood !== "only";
+    const calls: Promise<{ places?: RawPlace[] }>[] = (
+      keywordOnly ? [] : (["POPULARITY", "DISTANCE"] as const)
+    ).map(
       (rank) =>
         gateway("/places/v1/places:searchNearby", {
           method: "POST",
