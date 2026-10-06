@@ -16,7 +16,18 @@ import {
   searchRestaurants,
   type Restaurant,
 } from "@/lib/places.functions";
-import { ALL_CHIPS, CUISINE_CHIPS, DIET_CHIPS, milesBetween, randomIndex } from "@/lib/filters";
+import {
+  ALL_CHIPS,
+  CHIP_GROUPS,
+  MEALS,
+  defaultMealForNow,
+  isFastFood,
+  milesBetween,
+  randomIndex,
+  type FastFood,
+  type Meal,
+} from "@/lib/filters";
+import { ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -62,6 +73,9 @@ function Index() {
   const [minRating, setMinRating] = useState(0);
   const [openNow, setOpenNow] = useState(false);
   const [radius, setRadius] = useState(5);
+  const [meal, setMeal] = useState<Meal>("any");
+  const [fastFood, setFastFood] = useState<FastFood>("include");
+  useEffect(() => setMeal(defaultMealForNow()), []);
 
   const [places, setPlaces] = useState<Restaurant[]>([]);
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
@@ -118,18 +132,18 @@ function Index() {
   };
 
   // Fetch restaurants when location / cuisine / radius changes
-  const searchKey = JSON.stringify([loc?.lat, loc?.lng, [...chips].sort(), radius]);
+  const searchKey = JSON.stringify([loc?.lat, loc?.lng, [...chips].sort(), radius, meal, fastFood]);
   useEffect(() => {
     if (!loc) return;
     const selected = ALL_CHIPS.filter((c) => chips.includes(c.id));
     const types = [...new Set(selected.flatMap((c) => c.types))];
-    const keywords = selected.flatMap((c) => (c.keyword ? [c.keyword] : [])).slice(0, 3);
+    const keywords = [...new Set(selected.flatMap((c) => (c.keyword ? [c.keyword] : [])))].slice(0, 3);
     let cancelled = false;
     setLoading(true);
     setError(null);
     const t = setTimeout(async () => {
       try {
-        const r = await search({ data: { lat: loc.lat, lng: loc.lng, radiusMiles: radius, types, keywords } });
+        const r = await search({ data: { lat: loc.lat, lng: loc.lng, radiusMiles: radius, types, keywords, meal, fastFood } });
         if (!cancelled) {
           setPlaces(r);
           setExcluded(new Set());
@@ -155,8 +169,10 @@ function Index() {
       .filter((p) => minRating === 0 || (p.rating ?? 0) >= minRating)
       .filter((p) => prices.length === 0 || (p.priceLevel !== null && prices.includes(p.priceLevel)))
       .filter((p) => !chips.includes("vegetarian") || p.vegetarian === true || p.types.some((t) => t.startsWith("veg")))
+      .filter((p) => meal === "any" || p.meals[meal] !== false)
+      .filter((p) => (fastFood === "exclude" ? !isFastFood(p) : fastFood === "only" ? isFastFood(p) : true))
       .sort((a, b) => a.distance - b.distance);
-  }, [places, loc, radius, openNow, minRating, prices, chips]);
+  }, [places, loc, radius, openNow, minRating, prices, chips, meal, fastFood]);
 
   const eligible = filtered.filter((p) => !excluded.has(p.id));
 
@@ -184,7 +200,8 @@ function Index() {
 
   const toggle = <T,>(arr: T[], v: T) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const names = (pool.length ? pool : eligible.slice(0, MAX_WHEEL)).map((p) => p.name);
-  const hasGuess = ALL_CHIPS.some((c) => c.guess && chips.includes(c.id));
+  const guessLabels = ALL_CHIPS.filter((c) => c.guess && chips.includes(c.id)).map((c) => c.label);
+  const keywordCount = new Set(ALL_CHIPS.filter((c) => c.keyword && chips.includes(c.id)).map((c) => c.keyword)).size;
 
   return (
     <main className="min-h-screen pb-24">
@@ -243,15 +260,44 @@ function Index() {
       <div className="mx-auto mt-10 grid max-w-6xl gap-8 px-4 lg:grid-cols-[320px_1fr]">
         {/* Filters */}
         <aside className="space-y-6 rounded-3xl border-2 border-foreground bg-card p-5">
-          <FilterGroup title="Cravings & diet">
-            <ChipRow chips={DIET_CHIPS} selected={chips} onToggle={(id) => setChips(toggle(chips, id))} />
+          <FilterGroup title="Meal">
+            <Segmented
+              options={MEALS}
+              value={meal}
+              onChange={(v) => setMeal(v as Meal)}
+            />
           </FilterGroup>
-          <FilterGroup title="Cuisine">
-            <ChipRow chips={CUISINE_CHIPS} selected={chips} onToggle={(id) => setChips(toggle(chips, id))} />
+          <FilterGroup title="Fast food">
+            <Segmented
+              options={[
+                { id: "include", label: "Include" },
+                { id: "exclude", label: "Exclude" },
+                { id: "only", label: "Only" },
+              ]}
+              value={fastFood}
+              onChange={(v) => setFastFood(v as FastFood)}
+            />
           </FilterGroup>
-          {hasGuess && (
+          {CHIP_GROUPS.map((g) => (
+            <ChipGroup
+              key={g.id}
+              title={g.title}
+              chips={g.chips}
+              selected={chips}
+              defaultOpen={g.id !== "cuisine"}
+              onToggle={(id) => setChips(toggle(chips, id))}
+              onClear={() => setChips(chips.filter((id) => !g.chips.some((c) => c.id === id)))}
+            />
+          ))}
+          {guessLabels.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              Spicy and gluten-free are best guesses — Google doesn't track them, so we match likely cuisines and keywords.
+              * {guessLabels.join(", ")} {guessLabels.length === 1 ? "is a best guess" : "are best guesses"} — Google
+              doesn't track {guessLabels.length === 1 ? "it" : "them"}, so we match likely cuisines and keywords.
+            </p>
+          )}
+          {keywordCount > 3 && (
+            <p className="text-xs text-muted-foreground">
+              To keep searches quick, only the first 3 keyword-based choices are searched.
             </p>
           )}
           <FilterGroup title="Price">
@@ -443,12 +489,76 @@ function FilterGroup({ title, children }: { title: string; children: React.React
   );
 }
 
+function Segmented({
+  options,
+  value,
+  onChange,
+}: {
+  options: { id: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex rounded-full border-2 border-foreground bg-background p-0.5">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          onClick={() => onChange(o.id)}
+          className={`flex-1 rounded-full px-2 py-1.5 text-xs font-bold transition ${
+            value === o.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ChipGroup({
+  title,
+  chips,
+  selected,
+  defaultOpen,
+  onToggle,
+  onClear,
+}: {
+  title: string;
+  chips: readonly { id: string; label: string; guess?: boolean }[];
+  selected: string[];
+  defaultOpen: boolean;
+  onToggle: (id: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const count = chips.filter((c) => selected.includes(c.id)).length;
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <button onClick={() => setOpen(!open)} className="flex items-center gap-1 font-display text-lg">
+          {title}
+          {count > 0 && (
+            <span className="rounded-full bg-primary px-2 text-xs text-primary-foreground">{count}</span>
+          )}
+          <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
+        </button>
+        {count > 0 && (
+          <button onClick={onClear} className="text-xs text-muted-foreground underline">
+            Clear all
+          </button>
+        )}
+      </div>
+      {open && <ChipRow chips={[...chips]} selected={selected} onToggle={onToggle} />}
+    </div>
+  );
+}
+
 function ChipRow({
   chips,
   selected,
   onToggle,
 }: {
-  chips: { id: string; label: string }[];
+  chips: { id: string; label: string; guess?: boolean }[];
   selected: string[];
   onToggle: (id: string) => void;
 }) {
@@ -463,6 +573,7 @@ function ChipRow({
           }`}
         >
           {c.label}
+          {c.guess ? "*" : ""}
         </button>
       ))}
     </div>
