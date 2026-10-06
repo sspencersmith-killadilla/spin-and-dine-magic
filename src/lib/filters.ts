@@ -93,7 +93,7 @@ export const FAST_FOOD_CHAINS = [
   "domino", "pizza hut", "little caesars", "papa john", "jimmy john", "firehouse subs",
   "jersey mike", "panda express", "five guys", "in-n-out", "whataburger", "culver",
   "raising cane", "wingstop", "del taco", "el pollo loco", "checkers", "rally's", "steak 'n shake",
-  "chipotle", "qdoba", "long john silver", "church's", "zaxby", "bojangles", "krystal",
+  "chipotle", "qdoba", "shake shack", "potbelly", "dunkin", "portillo", "sbarro", "jollibee", "freshii", "panera", "noodles & company", "starbucks", "long john silver", "church's", "zaxby", "bojangles", "krystal",
 ];
 
 export function isFastFood(p: { name: string; types: string[] }) {
