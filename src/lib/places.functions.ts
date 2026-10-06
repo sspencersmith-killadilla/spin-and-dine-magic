@@ -91,6 +91,7 @@ export type Restaurant = {
   category: string;
   photo: string | null;
   mapsUrl: string;
+  meals: { breakfast: boolean | null; lunch: boolean | null; dinner: boolean | null };
 };
 
 const FIELDS = [
@@ -103,6 +104,10 @@ const FIELDS = [
   "formattedAddress",
   "currentOpeningHours.openNow",
   "servesVegetarianFood",
+  "servesBreakfast",
+  "servesBrunch",
+  "servesLunch",
+  "servesDinner",
   "types",
   "primaryTypeDisplayName",
   "photos",
@@ -129,6 +134,10 @@ type RawPlace = {
   formattedAddress?: string;
   currentOpeningHours?: { openNow?: boolean };
   servesVegetarianFood?: boolean;
+  servesBreakfast?: boolean;
+  servesBrunch?: boolean;
+  servesLunch?: boolean;
+  servesDinner?: boolean;
   types?: string[];
   primaryTypeDisplayName?: { text: string };
   photos?: { name: string }[];
@@ -151,6 +160,14 @@ function toDto(p: RawPlace): Restaurant {
     category: p.primaryTypeDisplayName?.text ?? "Restaurant",
     photo: p.photos?.[0]?.name ?? null,
     mapsUrl: p.googleMapsUri ?? "",
+    meals: {
+      breakfast:
+        p.servesBreakfast === undefined && p.servesBrunch === undefined
+          ? null
+          : !!(p.servesBreakfast || p.servesBrunch),
+      lunch: p.servesLunch ?? null,
+      dinner: p.servesDinner ?? null,
+    },
   };
 }
 
@@ -161,15 +178,24 @@ export const searchRestaurants = createServerFn({ method: "POST" })
         lat: z.number().min(-90).max(90),
         lng: z.number().min(-180).max(180),
         radiusMiles: z.number().min(0.5).max(10),
-        types: z.array(z.string().regex(/^[a-z_]+$/)).max(20),
+        types: z.array(z.string().regex(/^[a-z_]+$/)).max(50),
         keywords: z.array(z.string().max(40)).max(3),
+        meal: z.enum(["any", "breakfast", "lunch", "dinner"]),
+        fastFood: z.enum(["include", "exclude", "only"]),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
     const radius = Math.round(data.radiusMiles * 1609.34);
     const circle = { center: { latitude: data.lat, longitude: data.lng }, radius };
-    const includedTypes = data.types.length ? data.types : ["restaurant"];
+    let includedTypes = data.types.length ? [...data.types] : ["restaurant"];
+    if (!data.types.length && data.meal === "breakfast") {
+      includedTypes = ["breakfast_restaurant", "brunch_restaurant", "cafe", "bakery", "restaurant"];
+    }
+    if (data.fastFood === "only") includedTypes = ["fast_food_restaurant"];
+    else includedTypes = includedTypes.filter((t) => t !== "fast_food_restaurant");
+    const excludedTypes = data.fastFood === "exclude" ? ["fast_food_restaurant"] : undefined;
+    const mealWord = data.meal === "any" ? "" : `${data.meal} `;
 
     const calls: Promise<{ places?: RawPlace[] }>[] = (["POPULARITY", "DISTANCE"] as const).map(
       (rank) =>
@@ -178,19 +204,20 @@ export const searchRestaurants = createServerFn({ method: "POST" })
           fieldMask: FIELDS,
           body: JSON.stringify({
             includedTypes,
+            excludedTypes,
             maxResultCount: 20,
             rankPreference: rank,
             locationRestriction: { circle },
           }),
         }),
     );
-    for (const kw of data.keywords) {
+    for (const kw of data.fastFood === "only" ? [] : data.keywords) {
       calls.push(
         gateway("/places/v1/places:searchText", {
           method: "POST",
           fieldMask: FIELDS,
           body: JSON.stringify({
-            textQuery: `${kw} restaurant`,
+            textQuery: `${mealWord}${kw} restaurant`,
             includedType: "restaurant",
             pageSize: 20,
             locationBias: { circle },
