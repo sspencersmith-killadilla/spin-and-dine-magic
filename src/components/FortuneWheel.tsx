@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const SLICE_COLORS = ["var(--primary)", "var(--gold)", "var(--secondary)", "var(--accent)"];
+const SLICE_COLORS = ["var(--primary)", "var(--card)", "var(--secondary)", "var(--muted)"];
 
 export function FortuneWheel({
   names,
@@ -41,9 +41,9 @@ export function FortuneWheel({
   };
 
   return (
-    <div className="marquee relative mx-auto aspect-square w-full max-w-[380px] rounded-full p-3">
+    <div className="relative mx-auto aspect-square w-full max-w-[380px] rounded-full border border-primary/25 bg-background p-3 shadow-[0_0_40px_oklch(0.68_0.19_45/15%)]">
       <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1">
-        <div className="h-0 w-0 border-x-[14px] border-t-[28px] border-x-transparent border-t-foreground drop-shadow" />
+        <div className="h-0 w-0 border-x-[14px] border-t-[28px] border-x-transparent border-t-primary drop-shadow" />
       </div>
       <svg
         viewBox="-155 -155 310 310"
@@ -53,7 +53,7 @@ export function FortuneWheel({
           transition: "transform 5s cubic-bezier(0.15, 0.85, 0.2, 1)",
         }}
       >
-        <circle r="154" fill="var(--foreground)" />
+        <circle r="154" fill="var(--background)" />
         {names.map((name, i) => {
           const mid = i * slice + slice / 2;
           const label = name.length > 16 ? name.slice(0, 15) + "…" : name;
@@ -61,7 +61,7 @@ export function FortuneWheel({
           const dark = i % SLICE_COLORS.length === 0;
           return (
             <g key={i}>
-              <path d={arc(i)} fill={color} stroke="var(--foreground)" strokeWidth="1.5" />
+              <path d={arc(i)} fill={color} stroke="var(--background)" strokeWidth="1.5" />
               <text
                 transform={`rotate(${mid - 90}) translate(${R - 10},0)`}
                 textAnchor="end"
@@ -75,7 +75,7 @@ export function FortuneWheel({
             </g>
           );
         })}
-        <circle r="18" fill="var(--gold)" stroke="var(--foreground)" strokeWidth="3" />
+        <circle r="18" fill="var(--primary)" stroke="var(--background)" strokeWidth="3" />
       </svg>
     </div>
   );
