@@ -195,7 +195,6 @@ export const searchRestaurants = createServerFn({ method: "POST" })
     if (data.fastFood === "only") includedTypes = ["fast_food_restaurant"];
     else includedTypes = includedTypes.filter((t) => t !== "fast_food_restaurant");
     const excludedTypes = data.fastFood === "exclude" ? ["fast_food_restaurant"] : undefined;
-    const mealWord = data.meal === "any" ? "" : `${data.meal} `;
 
     // Keyword-only choices (e.g. Halal) should narrow results, so skip the generic nearby search.
     const keywordOnly = data.keywords.length > 0 && data.types.length === 0 && data.fastFood !== "only";
@@ -221,7 +220,7 @@ export const searchRestaurants = createServerFn({ method: "POST" })
           method: "POST",
           fieldMask: FIELDS,
           body: JSON.stringify({
-            textQuery: `${mealWord}${kw} restaurant`,
+            textQuery: `${kw} restaurant`,
             includedType: "restaurant",
             pageSize: 20,
             locationBias: { circle },
