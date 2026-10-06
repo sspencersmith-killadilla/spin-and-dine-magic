@@ -41,8 +41,8 @@ export function SlotMachine({
   }, [spinKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="marquee rounded-3xl p-4">
-      <div className="relative overflow-hidden rounded-2xl bg-card" style={{ height: ITEM_H * 3 }}>
+    <div className="marquee rounded-xl p-4">
+      <div className="relative overflow-hidden rounded-lg bg-background" style={{ height: ITEM_H * 3 }}>
         <div
           style={{
             transform: `translateY(${offset}px)`,
@@ -52,16 +52,16 @@ export function SlotMachine({
           {reel.map((n, i) => (
             <div
               key={i}
-              className="flex items-center justify-center px-4 text-center font-display text-2xl text-card-foreground"
+              className="flex items-center justify-center px-4 text-center font-display text-2xl font-bold tracking-tight text-foreground"
               style={{ height: ITEM_H }}
             >
               <span className="w-full truncate">{n}</span>
             </div>
           ))}
         </div>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[72px] bg-gradient-to-b from-card to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72px] bg-gradient-to-t from-card to-transparent" />
-        <div className="pointer-events-none absolute inset-x-2 top-[72px] h-[72px] rounded-xl border-4 border-gold" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[72px] bg-gradient-to-b from-background to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72px] bg-gradient-to-t from-background to-transparent" />
+        <div className="pointer-events-none absolute inset-x-2 top-[72px] h-[72px] rounded-lg border-2 border-primary shadow-[0_0_16px_oklch(0.68_0.19_45/30%)]" />
       </div>
     </div>
   );
