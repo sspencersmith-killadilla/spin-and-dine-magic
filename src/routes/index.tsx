@@ -32,13 +32,13 @@ import { ChevronDown } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dinner Roulette — Let Fate Pick Your Restaurant" },
+      { title: "Where Am I Eating? — Let Fate Pick Your Restaurant" },
       {
         name: "description",
         content:
           "Enter an address, pick your cravings, and spin a slot machine or wheel of fortune to choose a nearby restaurant.",
       },
-      { property: "og:title", content: "Dinner Roulette — Let Fate Pick Your Restaurant" },
+      { property: "og:title", content: "Where Am I Eating? — Let Fate Pick Your Restaurant" },
       {
         property: "og:description",
         content: "Spin to pick a restaurant near you. Filter by spicy, vegetarian, price, rating and more.",
@@ -205,11 +205,13 @@ function Index() {
 
   return (
     <main className="min-h-screen pb-24">
-      <header className="mx-auto max-w-6xl px-4 pt-10 text-center">
-        <p className="font-display text-sm uppercase tracking-[0.3em] text-gold">Can't decide?</p>
-        <h1 className="mt-2 font-display text-5xl leading-none text-primary sm:text-7xl">Dinner Roulette</h1>
-        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          Type an address, choose your cravings, and let the machine pick where you eat tonight.
+      <header className="mx-auto max-w-6xl px-4 pt-12 text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Indecisive?</p>
+        <h1 className="mt-3 font-display text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
+          Where Am I <span className="text-primary">Eating?</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
+          The ultimate algorithmic answer to your culinary indecision.
         </p>
       </header>
 
@@ -222,7 +224,7 @@ function Index() {
           className="flex gap-2"
         >
           <div className="relative flex-1">
-            <MapPin className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => {
@@ -230,11 +232,11 @@ function Index() {
                 setShowSug(true);
               }}
               onBlur={() => setTimeout(() => setShowSug(false), 150)}
-              placeholder="Enter an address, e.g. 233 S Wacker Dr, Chicago"
-              className="h-14 rounded-full border-2 border-foreground bg-card pl-10 text-base"
+              placeholder="Enter your address..."
+              className="h-12 rounded-xl border bg-card pl-10 text-sm transition-colors focus-visible:border-primary"
             />
             {showSug && suggestions.length > 0 && (
-              <ul className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border-2 border-foreground bg-card shadow-lg">
+              <ul className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border bg-card shadow-2xl">
                 {suggestions.map((s) => (
                   <li key={s.placeId}>
                     <button
@@ -250,7 +252,7 @@ function Index() {
               </ul>
             )}
           </div>
-          <Button type="submit" size="lg" className="h-14 rounded-full px-6 font-display text-lg">
+          <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-sm font-bold uppercase tracking-wider transition-transform active:scale-95">
             Go
           </Button>
         </form>
@@ -259,7 +261,7 @@ function Index() {
 
       <div className="mx-auto mt-10 grid max-w-6xl gap-8 px-4 lg:grid-cols-[320px_1fr]">
         {/* Filters */}
-        <aside className="space-y-6 rounded-3xl border-2 border-foreground bg-card p-5">
+        <aside className="space-y-6 rounded-2xl border bg-card p-5 shadow-2xl">
           <FilterGroup title="Meal">
             <Segmented
               options={MEALS}
@@ -306,8 +308,10 @@ function Index() {
                 <button
                   key={l}
                   onClick={() => setPrices(toggle(prices, i + 1))}
-                  className={`flex-1 rounded-full border-2 border-foreground py-1.5 text-sm font-bold transition ${
-                    prices.includes(i + 1) ? "bg-primary text-primary-foreground" : "bg-background"
+                  className={`flex-1 rounded-full border py-1.5 text-xs font-medium transition ${
+                    prices.includes(i + 1)
+                      ? "border-primary bg-primary font-bold text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:border-primary/40"
                   }`}
                 >
                   {l}
@@ -322,16 +326,16 @@ function Index() {
             <Slider min={1} max={10} step={1} value={[radius]} onValueChange={(v) => setRadius(v[0] ?? 5)} />
           </FilterGroup>
           <label className="flex items-center justify-between">
-            <span className="font-display text-lg">Open now</span>
+            <span className="text-sm font-medium">Open now only</span>
             <Switch checked={openNow} onCheckedChange={setOpenNow} />
           </label>
         </aside>
 
         {/* Picker + results */}
         <section className="min-w-0 space-y-8">
-          <div className="rounded-3xl border-2 border-foreground bg-secondary p-5 sm:p-8">
+          <div className="rounded-2xl border bg-card p-5 shadow-2xl sm:p-8">
             <div className="mb-6 flex justify-center">
-              <div className="inline-flex rounded-full border-2 border-foreground bg-card p-1">
+              <div className="inline-flex rounded-lg border bg-background p-1">
                 {(["slot", "wheel"] as const).map((m) => (
                   <button
                     key={m}
@@ -341,21 +345,24 @@ function Index() {
                       setPool([]);
                       setWinner(null);
                     }}
-                    className={`rounded-full px-5 py-2 font-display text-base transition ${
-                      mode === m ? "bg-primary text-primary-foreground" : ""
+                    className={`rounded-md px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition ${
+                      mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                     }`}
                   >
-                    {m === "slot" ? "Slot machine" : "Wheel of fortune"}
+                    {m === "slot" ? "Slot machine" : "Wheel"}
                   </button>
                 ))}
               </div>
             </div>
 
             {eligible.length === 0 ? (
-              <div className="marquee flex min-h-[240px] items-center justify-center rounded-3xl p-6 text-center">
-                <p className="font-display text-xl text-primary-foreground">
-                  {loading ? "Finding restaurants…" : loc ? "No restaurants match — loosen your filters." : "Enter an address to load the machine."}
-                </p>
+              <div className="marquee flex min-h-[240px] items-center justify-center rounded-xl p-6 text-center">
+                <div>
+                  <div className="mx-auto mb-4 h-12 w-12 animate-[spin_10s_linear_infinite] rounded-full border-2 border-dashed border-primary" />
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                    {loading ? "Finding restaurants…" : loc ? "No restaurants match — loosen your filters." : "Awaiting location"}
+                  </p>
+                </div>
               </div>
             ) : mode === "slot" ? (
               <SlotMachine names={names} winnerIndex={winnerIdx} spinKey={spinKey} onDone={onDone} />
@@ -368,10 +375,10 @@ function Index() {
                 onClick={spin}
                 disabled={eligible.length === 0 || spinning}
                 size="lg"
-                className="h-16 rounded-full border-2 border-foreground px-10 font-display text-2xl shadow-[0_6px_0_var(--foreground)] active:translate-y-1 active:shadow-[0_2px_0_var(--foreground)]"
+                className="ember-glow h-14 rounded-xl px-10 font-display text-lg font-bold uppercase tracking-widest transition-all active:translate-y-0.5 active:shadow-none disabled:opacity-40 disabled:shadow-none"
               >
-                <Dices className="mr-2 h-6 w-6" />
-                {spinning ? "Spinning…" : "Spin!"}
+                <Dices className="mr-2 h-5 w-5" />
+                {spinning ? "Spinning…" : "Spin the dial"}
               </Button>
               {mode === "wheel" && eligible.length > MAX_WHEEL && (
                 <p className="text-xs text-muted-foreground">
@@ -381,17 +388,17 @@ function Index() {
             </div>
 
             {winner && (
-              <div className="relative mt-8 overflow-hidden rounded-3xl border-2 border-foreground bg-card">
+              <div className="relative mt-8 overflow-hidden rounded-2xl border border-primary/30 bg-background shadow-2xl">
                 <Confetti />
                 {winnerPhoto && <img src={winnerPhoto} alt={winner.name} className="h-56 w-full object-cover" />}
                 <div className="p-6 text-center">
-                  <p className="font-display text-sm uppercase tracking-[0.3em] text-gold">Tonight you're eating at</p>
-                  <h2 className="mt-1 font-display text-4xl text-primary">{winner.name}</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Tonight you're eating at</p>
+                  <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{winner.name}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">{winner.address}</p>
-                  <div className="mt-2 flex justify-center gap-4 text-sm">
+                  <div className="mt-2 flex justify-center gap-4 text-sm text-muted-foreground">
                     {winner.rating && (
                       <span className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-gold text-gold" /> {winner.rating}
+                        <Star className="h-4 w-4 fill-primary text-primary" /> {winner.rating}
                       </span>
                     )}
                     {winner.priceLevel ? <span>{PRICE_LABELS[winner.priceLevel - 1]}</span> : null}
@@ -399,13 +406,13 @@ function Index() {
                   </div>
                   <div className="mt-5 flex flex-wrap justify-center gap-3">
                     {winner.mapsUrl && (
-                      <Button asChild className="rounded-full">
+                      <Button asChild className="rounded-xl font-bold">
                         <a href={winner.mapsUrl} target="_blank" rel="noreferrer">
                           <Navigation className="mr-1 h-4 w-4" /> Get directions
                         </a>
                       </Button>
                     )}
-                    <Button variant="outline" className="rounded-full border-2 border-foreground" onClick={spin}>
+                    <Button variant="outline" className="rounded-xl" onClick={spin}>
                       <RotateCcw className="mr-1 h-4 w-4" /> Spin again
                     </Button>
                   </div>
@@ -419,10 +426,10 @@ function Index() {
           {loc && (
             <div>
               <div className="mb-3 flex items-baseline justify-between">
-                <h2 className="font-display text-2xl">
+                <h2 className="font-display text-xl font-bold tracking-tight">
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin" /> Loading…
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" /> Loading…
                     </span>
                   ) : (
                     `${eligible.length} in the running`
@@ -443,7 +450,7 @@ function Index() {
                           setExcluded(s);
                           setPool([]);
                         }}
-                        className={`w-full rounded-2xl border-2 border-foreground bg-card p-4 text-left transition hover:-translate-y-0.5 ${
+                        className={`w-full rounded-xl border bg-card p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/40 ${
                           out ? "opacity-40" : ""
                         }`}
                       >
@@ -455,7 +462,7 @@ function Index() {
                           <span>{p.distance < 0.1 ? "<0.1" : p.distance.toFixed(1)} mi</span>
                           {p.rating && (
                             <span className="flex items-center gap-0.5">
-                              <Star className="h-3 w-3 fill-gold text-gold" /> {p.rating} ({p.ratingCount})
+                              <Star className="h-3 w-3 fill-primary text-primary" /> {p.rating} ({p.ratingCount})
                             </span>
                           )}
                           {p.priceLevel ? <span>{PRICE_LABELS[p.priceLevel - 1]}</span> : null}
@@ -483,7 +490,7 @@ function Index() {
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-2 font-display text-lg">{title}</h3>
+      <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">{title}</h3>
       {children}
     </div>
   );
@@ -499,13 +506,13 @@ function Segmented({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="flex rounded-full border-2 border-foreground bg-background p-0.5">
+    <div className="flex rounded-xl border bg-background p-1">
       {options.map((o) => (
         <button
           key={o.id}
           onClick={() => onChange(o.id)}
-          className={`flex-1 rounded-full px-2 py-1.5 text-xs font-bold transition ${
-            value === o.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+          className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-bold transition ${
+            value === o.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {o.label}
@@ -534,16 +541,16 @@ function ChipGroup({
   const count = chips.filter((c) => selected.includes(c.id)).length;
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <button onClick={() => setOpen(!open)} className="flex items-center gap-1 font-display text-lg">
+      <div className="mb-3 flex items-center justify-between">
+        <button onClick={() => setOpen(!open)} className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary">
           {title}
           {count > 0 && (
-            <span className="rounded-full bg-primary px-2 text-xs text-primary-foreground">{count}</span>
+            <span className="rounded-full bg-primary px-2 text-[10px] font-bold text-primary-foreground">{count}</span>
           )}
           <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
         </button>
         {count > 0 && (
-          <button onClick={onClear} className="text-xs text-muted-foreground underline">
+          <button onClick={onClear} className="text-[10px] font-bold uppercase text-muted-foreground underline">
             Clear all
           </button>
         )}
@@ -568,8 +575,10 @@ function ChipRow({
         <button
           key={c.id}
           onClick={() => onToggle(c.id)}
-          className={`rounded-full border-2 border-foreground px-3 py-1 text-sm font-semibold transition ${
-            selected.includes(c.id) ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+          className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
+            selected.includes(c.id)
+              ? "border-primary bg-primary font-bold text-primary-foreground"
+              : "bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
           }`}
         >
           {c.label}
