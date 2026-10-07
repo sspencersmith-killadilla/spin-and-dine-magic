@@ -76,6 +76,25 @@ export const geocodeAddress = createServerFn({ method: "POST" })
     };
   });
 
+export const reverseGeocode = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const json = await gateway(
+      `/maps/api/geocode/json?latlng=${data.lat},${data.lng}`,
+      { method: "GET" },
+    );
+    // Prefer a street-level result over a plus-code or neighborhood-only entry.
+    const results = (json.results ?? []) as Array<{
+      formatted_address?: string;
+      types?: string[];
+    }>;
+    const best =
+      results.find((r) => r.types?.includes("street_address")) ?? results[0];
+    return { address: best?.formatted_address ?? "" };
+  });
+
 export type Restaurant = {
   id: string;
   name: string;

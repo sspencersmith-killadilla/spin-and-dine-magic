@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, Star, Dices, Loader2, Navigation, X, RotateCcw } from "lucide-react";
+import { MapPin, Star, Dices, Loader2, Navigation, X, RotateCcw, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -11,6 +11,7 @@ import { FortuneWheel } from "@/components/FortuneWheel";
 import {
   autocompleteAddress,
   geocodeAddress,
+  reverseGeocode,
   getPhotoUrl,
   getPlaceLocation,
   searchRestaurants,
@@ -58,6 +59,7 @@ function Index() {
   const autocomplete = useServerFn(autocompleteAddress);
   const placeLoc = useServerFn(getPlaceLocation);
   const geocode = useServerFn(geocodeAddress);
+  const revGeocode = useServerFn(reverseGeocode);
   const search = useServerFn(searchRestaurants);
   const photoFn = useServerFn(getPhotoUrl);
 
@@ -80,6 +82,7 @@ function Index() {
   const [places, setPlaces] = useState<Restaurant[]>([]);
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [mode, setMode] = useState<"slot" | "wheel">("slot");
@@ -129,6 +132,40 @@ function Index() {
     } catch (e) {
       setError((e as Error).message);
     }
+  };
+
+  const useMyLocation = () => {
+    if (geoLoading) return;
+    if (!("geolocation" in navigator)) {
+      setError("Your browser doesn't support location detection.");
+      return;
+    }
+    setError(null);
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const { address } = await revGeocode({ data: { lat: latitude, lng: longitude } });
+          setLoc({ lat: latitude, lng: longitude, address: address || "your location" });
+          setQuery(address);
+          setShowSug(false);
+        } catch (e) {
+          setError((e as Error).message);
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      (err) => {
+        setGeoLoading(false);
+        setError(
+          err.code === err.PERMISSION_DENIED
+            ? "Location access was blocked. Allow it in your browser, or type your address instead."
+            : "Couldn't determine your location. Try typing your address instead.",
+        );
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
+    );
   };
 
   // Fetch restaurants when location / cuisine / radius changes
@@ -252,6 +289,17 @@ function Index() {
               </ul>
             )}
           </div>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={useMyLocation}
+            disabled={geoLoading}
+            className="h-12 rounded-xl px-4 text-sm font-bold uppercase tracking-wider transition-transform active:scale-95"
+          >
+            {geoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="mr-1 h-4 w-4" />}
+            <span className="hidden sm:inline">{geoLoading ? "Locating…" : "My location"}</span>
+          </Button>
           <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-sm font-bold uppercase tracking-wider transition-transform active:scale-95">
             Go
           </Button>
