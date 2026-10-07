@@ -82,6 +82,7 @@ function Index() {
   const [places, setPlaces] = useState<Restaurant[]>([]);
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [mode, setMode] = useState<"slot" | "wheel">("slot");
