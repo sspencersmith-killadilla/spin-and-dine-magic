@@ -11,6 +11,7 @@ import { FortuneWheel } from "@/components/FortuneWheel";
 import {
   autocompleteAddress,
   geocodeAddress,
+  reverseGeocode,
   getPhotoUrl,
   getPlaceLocation,
   searchRestaurants,
