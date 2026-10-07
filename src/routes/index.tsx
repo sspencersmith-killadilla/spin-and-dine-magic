@@ -59,6 +59,7 @@ function Index() {
   const autocomplete = useServerFn(autocompleteAddress);
   const placeLoc = useServerFn(getPlaceLocation);
   const geocode = useServerFn(geocodeAddress);
+  const revGeocode = useServerFn(reverseGeocode);
   const search = useServerFn(searchRestaurants);
   const photoFn = useServerFn(getPhotoUrl);
 
