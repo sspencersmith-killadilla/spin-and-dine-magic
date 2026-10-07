@@ -289,6 +289,17 @@ function Index() {
               </ul>
             )}
           </div>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={useMyLocation}
+            disabled={geoLoading}
+            className="h-12 rounded-xl px-4 text-sm font-bold uppercase tracking-wider transition-transform active:scale-95"
+          >
+            {geoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="mr-1 h-4 w-4" />}
+            <span className="hidden sm:inline">{geoLoading ? "Locating…" : "My location"}</span>
+          </Button>
           <Button type="submit" size="lg" className="h-12 rounded-xl px-6 text-sm font-bold uppercase tracking-wider transition-transform active:scale-95">
             Go
           </Button>
