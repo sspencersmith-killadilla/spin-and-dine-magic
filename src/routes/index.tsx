@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, Star, Dices, Loader2, Navigation, X, RotateCcw } from "lucide-react";
+import { MapPin, Star, Dices, Loader2, Navigation, X, RotateCcw, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
