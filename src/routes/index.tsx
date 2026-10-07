@@ -134,6 +134,40 @@ function Index() {
     }
   };
 
+  const useMyLocation = () => {
+    if (geoLoading) return;
+    if (!("geolocation" in navigator)) {
+      setError("Your browser doesn't support location detection.");
+      return;
+    }
+    setError(null);
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const { address } = await revGeocode({ data: { lat: latitude, lng: longitude } });
+          setLoc({ lat: latitude, lng: longitude, address: address || "your location" });
+          setQuery(address);
+          setShowSug(false);
+        } catch (e) {
+          setError((e as Error).message);
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      (err) => {
+        setGeoLoading(false);
+        setError(
+          err.code === err.PERMISSION_DENIED
+            ? "Location access was blocked. Allow it in your browser, or type your address instead."
+            : "Couldn't determine your location. Try typing your address instead.",
+        );
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
+    );
+  };
+
   // Fetch restaurants when location / cuisine / radius changes
   const searchKey = JSON.stringify([loc?.lat, loc?.lng, [...chips].sort(), radius, meal, fastFood]);
   useEffect(() => {
